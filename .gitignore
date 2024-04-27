@@ -78,4 +78,5 @@ crashlytics-build.properties
 /[Aa]ssets/[Pp]lugins/
 /[Aa]ssets/[Pp]lugins.meta
 /[Pp]ackages/com.*
-# Assets/Plugins.meta
+
+.DS_Store

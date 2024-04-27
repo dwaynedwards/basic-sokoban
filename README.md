@@ -2,5 +2,9 @@
 
 ## **Learning Outcomes:**
 
-- [ ] Read map data from a file
-- [ ] Create tiles in a Unity Grid from map data
+- [x] Read map data from a file
+- [x] Create tiles from map data using Unity Grid
+- [ ] Move player
+- [ ] Check wall collisions
+- [ ] Check box collisions
+- [ ] Check goal collisions
