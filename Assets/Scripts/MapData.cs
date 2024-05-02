@@ -1,7 +1,7 @@
 using System.IO;
 using Sirenix.OdinInspector;
 
-namespace LBAPG
+namespace Sokoban
 {
     public class MapData
     {
@@ -53,7 +53,8 @@ namespace LBAPG
             }
 
             // Read map
-            for (var row = Rows - 1; sr.Peek() >= 0; row--)
+            // for (var row = Rows - 1; sr.Peek() >= 0; row--)
+            for (var row = 0; sr.Peek() >= 0; row++)
             {
                 var line = sr.ReadLine();
                 for (var col = 0; col < line?.Length; col++)
