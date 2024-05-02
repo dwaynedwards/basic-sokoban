@@ -1,24 +1,18 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
-using Sirenix.OdinInspector;
 
 namespace Sokoban
 {
+    [Serializable]
     public class MapData
     {
-        [Title("Map Name")]
-        [ShowInInspector, ReadOnly,]
         public string Name { get; private set; }
 
-        [Title("Map Size")]
-        [ShowInInspector, ReadOnly,]
         public int Rows { get; private set; }
 
-        [ShowInInspector, ReadOnly,]
         public int Cols { get; private set; }
 
-        [Title("Map Data")]
-        [ShowInInspector, ReadOnly,]
         private readonly Dictionary<(int, int), string> _mapTiles = new();
 
         public void LoadMap(string filename)

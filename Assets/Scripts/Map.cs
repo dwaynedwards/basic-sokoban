@@ -1,41 +1,87 @@
+using System;
 using System.Collections.Generic;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Sokoban
 {
-    [ShowOdinSerializedPropertiesInInspector]
-    public class Map : MonoBehaviour
+    [Serializable]
+    public class Map
     {
-        [SerializeField]
-        private string _filename;
-
-        [SerializeField]
-        private Transform[] _tilePrefabs;
-
-        [ShowInInspector]
-        private MapData _mapData = new();
-
-        private readonly Dictionary<(int, int), Transform> _mapTiles = new();
-
-        private Transform _player;
-
-        [ShowInInspector]
         private List<(int, int)> _goals = new();
+
+        private MapTile _player;
 
         private Vector3 _moveDirection;
 
-        private void Awake()
+        private MapData _mapData = new();
+        private readonly Dictionary<(int, int), MapTile> _mapTiles = new();
+
+        private IMap _map;
+
+        public Map(IMap map)
         {
-            _mapData.LoadMap(_filename);
+            _map = map;
         }
 
-        private void Start()
+        public void Initialize()
         {
-            InitMap();
+            _mapData.LoadMap(_map.FilePath);
+
+            for (var row = 0; row < _mapData.Rows; row++)
+            {
+                for (var col = 0; col < _mapData.Cols; col++)
+                {
+                    var tileToken = _mapData.GetMapTile(row, col);
+                    if (tileToken.Equals(" "))
+                    {
+                        continue;
+                    }
+
+                    CreateMapTile(tileToken, row, col);
+
+                    switch (tileToken)
+                    {
+                        case "@":
+                            _player = _mapTiles[(row, col)];
+                            break;
+                        case ".":
+                            _goals.Add((row, col));
+                            break;
+                    }
+                }
+            }
         }
 
-        private void Update()
+        private void CreateMapTile(string tileToken, int row, int col)
+        {
+            var position = GetTilePosition(row, col);
+
+            if (".".Equals(tileToken))
+            {
+                _map.CreateMapTile(tileToken, position);
+                return;
+            }
+
+            _map.CreateMapTile("=", position);
+
+            var zPosition = tileToken switch
+            {
+                "#" => -1f,
+                "$" => -2f,
+                "@" => -3f,
+                _ => 0f,
+            };
+
+            if (zPosition.Equals(0))
+            {
+                return;
+            }
+
+            position.z = zPosition;
+            _mapTiles[(row, col)] = _map.CreateMapTile(tileToken, position);
+        }
+
+        public void Update()
         {
             HandleInput();
             HandleMove();
@@ -88,7 +134,7 @@ namespace Sokoban
 
         private bool TestMove(out Vector3 position)
         {
-            position = _player.position;
+            position = _player.Position;
             position += _moveDirection;
             var isFirstBox = true;
 
@@ -111,7 +157,7 @@ namespace Sokoban
 
         private void DoMove(Vector3 fromPosition)
         {
-            var playerPosition = _player.position;
+            var playerPosition = _player.Position;
             while (playerPosition != fromPosition)
             {
                 var toPosition = fromPosition;
@@ -119,69 +165,18 @@ namespace Sokoban
 
                 if (playerPosition != toPosition)
                 {
-                    GetMapTile(toPosition)?.Translate(_moveDirection);
+                    var tile = GetMapTile(toPosition);
+                    if (tile is not null)
+                    {
+                        tile.Position += _moveDirection;
+                    }
                 }
 
                 HandleSwapMapTiles(toPosition, fromPosition);
                 fromPosition = toPosition;
             }
 
-            _player.Translate(_moveDirection);
-        }
-
-        private void InitMap()
-        {
-            for (var row = 0; row < _mapData.Rows; row++)
-            {
-                for (var col = 0; col < _mapData.Cols; col++)
-                {
-                    var tile = _mapData.GetMapTile(row, col);
-                    if (tile.Equals(" "))
-                    {
-                        continue;
-                    }
-
-                    CreateMapTile(tile, row, col);
-                    switch (tile)
-                    {
-                        case "@":
-                            _player = _mapTiles[(row, col)];
-                            break;
-                        case ".":
-                            _goals.Add((row, col));
-                            break;
-                    }
-                }
-            }
-        }
-
-        private void CreateMapTile(string tile, int row, int col)
-        {
-            var position = GetTilePosition(row, col);
-
-            if (".".Equals(tile))
-            {
-                Instantiate(_tilePrefabs[2], position, Quaternion.identity, transform);
-                return;
-            }
-
-            Instantiate(_tilePrefabs[0], position, Quaternion.identity, transform);
-
-            var (tilePrefab, zPosition) = tile switch
-            {
-                "#" => (_tilePrefabs[1], -1f),
-                "$" => (_tilePrefabs[3], -2f),
-                "@" => (_tilePrefabs[4], -3f),
-                _ => (null, 0f),
-            };
-
-            if (tilePrefab is null)
-            {
-                return;
-            }
-
-            position.z = zPosition;
-            _mapTiles[(row, col)] = Instantiate(tilePrefab, position, Quaternion.identity, transform);
+            _player.Position += _moveDirection;
         }
 
         private bool CheckGoals()
@@ -190,8 +185,8 @@ namespace Sokoban
 
             foreach (var (row, col) in _goals)
             {
-                var maptile = GetMapTile(new Vector3(col, row));
-                if (!maptile || !maptile.tag.Equals("Box"))
+                var mapTile = GetMapTile(new Vector3(col, row));
+                if (mapTile is null || mapTile.Type != MapTileType.Box)
                 {
                     continue;
                 }
@@ -239,7 +234,7 @@ namespace Sokoban
 
         private bool CanMove(Vector3 position)
         {
-            return GetMapTile(position).tag.Equals("Box");
+            return GetMapTile(position).Type == MapTileType.Box;
         }
 
         private static Vector3 GetTilePosition(int row, int col)
@@ -252,7 +247,7 @@ namespace Sokoban
             return (Mathf.Abs(Mathf.FloorToInt(position.y)), Mathf.Abs(Mathf.FloorToInt(position.x)));
         }
 
-        private Transform GetMapTile(Vector3 position)
+        private MapTile GetMapTile(Vector3 position)
         {
             var (row, col) = GetPositionToMapRowCol(position);
             return HasMapTile(position) ? _mapTiles[(row, col)] : null;
