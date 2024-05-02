@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using Sirenix.OdinInspector;
 
@@ -18,9 +19,7 @@ namespace Sokoban
 
         [Title("Map Data")]
         [ShowInInspector, ReadOnly,]
-        private string[,] _map;
-
-        public MapData() { }
+        private readonly Dictionary<(int, int), string> _mapTiles = new();
 
         public void LoadMap(string filename)
         {
@@ -42,18 +41,11 @@ namespace Sokoban
 
         public string GetMapTile(int row, int col)
         {
-            return _map[row, col] ?? " ";
+            return HasMapTile(row, col) ? _mapTiles[(row, col)] : " ";
         }
 
         private void ReadMapTiles(TextReader sr)
         {
-            if (_map is null)
-            {
-                return;
-            }
-
-            // Read map
-            // for (var row = Rows - 1; sr.Peek() >= 0; row--)
             for (var row = 0; sr.Peek() >= 0; row++)
             {
                 var line = sr.ReadLine();
@@ -66,16 +58,15 @@ namespace Sokoban
                         continue;
                     }
 
-                    _map[row, col] = tile;
+                    _mapTiles[(row, col)] = tile;
                 }
             }
         }
 
         private void ReadMapSize(TextReader sr)
         {
-            // Read size of map
             var size = sr.ReadLine()?.Split("x");
-            // Read blank line
+
             sr.ReadLine();
             if (size is null)
             {
@@ -84,14 +75,16 @@ namespace Sokoban
 
             Rows = int.Parse(size[1]);
             Cols = int.Parse(size[0]);
-
-            _map = new string[Rows, Cols];
         }
 
         private void ReadMapName(TextReader sr)
         {
-            // Read name
             Name = sr.ReadLine();
+        }
+
+        private bool HasMapTile(int row, int col)
+        {
+            return _mapTiles.ContainsKey((row, col));
         }
     }
 }

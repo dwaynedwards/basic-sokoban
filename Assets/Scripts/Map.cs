@@ -16,7 +16,7 @@ namespace Sokoban
         [ShowInInspector]
         private MapData _mapData = new();
 
-        private Transform[,] _mapTiles;
+        private readonly Dictionary<(int, int), Transform> _mapTiles = new();
 
         private Transform _player;
 
@@ -28,7 +28,6 @@ namespace Sokoban
         private void Awake()
         {
             _mapData.LoadMap(_filename);
-            _mapTiles = new Transform[_mapData.Rows, _mapData.Cols];
         }
 
         private void Start()
@@ -123,7 +122,7 @@ namespace Sokoban
                     GetMapTile(toPosition)?.Translate(_moveDirection);
                 }
 
-                SwapMapTilesInMap(toPosition, fromPosition);
+                HandleSwapMapTiles(toPosition, fromPosition);
                 fromPosition = toPosition;
             }
 
@@ -137,11 +136,16 @@ namespace Sokoban
                 for (var col = 0; col < _mapData.Cols; col++)
                 {
                     var tile = _mapData.GetMapTile(row, col);
+                    if (tile.Equals(" "))
+                    {
+                        continue;
+                    }
+
                     CreateMapTile(tile, row, col);
                     switch (tile)
                     {
                         case "@":
-                            _player = _mapTiles[row, col];
+                            _player = _mapTiles[(row, col)];
                             break;
                         case ".":
                             _goals.Add((row, col));
@@ -177,7 +181,7 @@ namespace Sokoban
             }
 
             position.z = zPosition;
-            _mapTiles[row, col] = Instantiate(tilePrefab, position, Quaternion.identity, transform);
+            _mapTiles[(row, col)] = Instantiate(tilePrefab, position, Quaternion.identity, transform);
         }
 
         private bool CheckGoals()
@@ -186,27 +190,51 @@ namespace Sokoban
 
             foreach (var (row, col) in _goals)
             {
-                var maptile = _mapTiles[row, col];
-                if (!maptile)
+                var maptile = GetMapTile(new Vector3(col, row));
+                if (!maptile || !maptile.tag.Equals("Box"))
                 {
                     continue;
                 }
 
-                if (maptile.tag.Equals("Box"))
-                {
-                    goalCount++;
-                }
+                goalCount++;
             }
 
-            return goalCount == _goals.Count;
+            return _goals.Count.Equals(goalCount);
         }
 
-        private void SwapMapTilesInMap(Vector3 to, Vector3 from)
+        private void HandleSwapMapTiles(Vector3 to, Vector3 from)
         {
-            var (toRow, toCol) = GetMapRowCol(to);
-            var (fromRow, fromCol) = GetMapRowCol(from);
-            (_mapTiles[toRow, toCol], _mapTiles[fromRow, fromCol]) =
-                (_mapTiles[fromRow, fromCol], _mapTiles[toRow, toCol]);
+            var hasTo = HasMapTile(to);
+            var hasFrom = HasMapTile(from);
+
+            if (hasTo && hasFrom)
+            {
+                SwapMapTiles(to, from);
+            }
+            else if (hasTo)
+            {
+                SwapMapTilesAndRemove(from, to);
+            }
+            else if (hasFrom)
+            {
+                SwapMapTilesAndRemove(to, from);
+            }
+        }
+
+        private void SwapMapTiles(Vector3 to, Vector3 from)
+        {
+            var (toRow, toCol) = GetPositionToMapRowCol(to);
+            var (fromRow, fromCol) = GetPositionToMapRowCol(from);
+            (_mapTiles[(toRow, toCol)], _mapTiles[(fromRow, fromCol)]) =
+                (_mapTiles[(fromRow, fromCol)], _mapTiles[(toRow, toCol)]);
+        }
+
+        private void SwapMapTilesAndRemove(Vector3 to, Vector3 from)
+        {
+            var (toRow, toCol) = GetPositionToMapRowCol(to);
+            var (fromRow, fromCol) = GetPositionToMapRowCol(from);
+            _mapTiles[(toRow, toCol)] = _mapTiles[(fromRow, fromCol)];
+            _mapTiles.Remove((fromRow, fromCol));
         }
 
         private bool CanMove(Vector3 position)
@@ -219,17 +247,21 @@ namespace Sokoban
             return new Vector3(col * 1, row * -1);
         }
 
-        private static (int row, int col) GetMapRowCol(Vector3 position)
+        private static (int row, int col) GetPositionToMapRowCol(Vector3 position)
         {
-            var row = Mathf.Abs(Mathf.FloorToInt(position.y));
-            var col = Mathf.Abs(Mathf.FloorToInt(position.x));
-            return (row, col);
+            return (Mathf.Abs(Mathf.FloorToInt(position.y)), Mathf.Abs(Mathf.FloorToInt(position.x)));
         }
 
         private Transform GetMapTile(Vector3 position)
         {
-            var (row, col) = GetMapRowCol(position);
-            return _mapTiles[row, col];
+            var (row, col) = GetPositionToMapRowCol(position);
+            return HasMapTile(position) ? _mapTiles[(row, col)] : null;
+        }
+
+        private bool HasMapTile(Vector3 position)
+        {
+            var (row, col) = GetPositionToMapRowCol(position);
+            return _mapTiles.ContainsKey((row, col));
         }
     }
 }

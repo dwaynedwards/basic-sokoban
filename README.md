@@ -9,3 +9,4 @@
 - [x] Check box collisions
 - [x] Check goal collisions
 - [ ] Write tests
+- [ ] Undo/Redo
