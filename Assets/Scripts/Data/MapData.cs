@@ -7,20 +7,61 @@ namespace Sokoban
     [Serializable]
     public class MapData
     {
+        #region Fields and Properties
+
+        #region Public
+
         public MapTileData Player { get; private set; }
+
+        public bool IsLevelComplete
+        {
+            get
+            {
+                var goalCount = 0;
+
+                foreach (var (row, col) in _goals)
+                {
+                    var mapTile = GetMapTile(new Vector3(col, row));
+                    if (mapTile is null || mapTile.Type != MapTileType.Box)
+                    {
+                        continue;
+                    }
+
+                    goalCount++;
+                }
+
+                return _goals.Count.Equals(goalCount);
+            }
+        }
+
+        #endregion
+
+        #region Private
 
         private MapFileData _mapFileData = new();
         private readonly Dictionary<(int, int), MapTileData> _mapTiles = new();
         private List<(int, int)> _goals = new();
 
-        private ICreateMapTile _createMapTile;
+        private IMap _map;
         private string _filePath;
 
-        public MapData(ICreateMapTile createMapTile, string filePath)
+        #endregion
+
+        #endregion
+
+        #region Constructors
+
+        public MapData(IMap map, string filePath)
         {
-            _createMapTile = createMapTile;
+            _map = map;
             _filePath = filePath;
         }
+
+        #endregion
+
+        #region Methods
+
+        #region Public
 
         public void Initialize()
         {
@@ -51,51 +92,11 @@ namespace Sokoban
             }
         }
 
-        private void CreateMapTile(string tileToken, int row, int col)
+        public void Reset()
         {
-            var position = GetTilePositionFromRowCol(row, col);
-
-            if (".".Equals(tileToken))
-            {
-                _createMapTile.CreateMapTile(tileToken, position);
-                return;
-            }
-
-            _createMapTile.CreateMapTile("=", position);
-
-            var zPosition = tileToken switch
-            {
-                "#" => -1f,
-                "$" => -2f,
-                "@" => -3f,
-                _ => 0f,
-            };
-
-            if (zPosition.Equals(0))
-            {
-                return;
-            }
-
-            position.z = zPosition;
-            _mapTiles[(row, col)] = _createMapTile.CreateMapTile(tileToken, position);
-        }
-
-        public bool CheckGoals()
-        {
-            var goalCount = 0;
-
-            foreach (var (row, col) in _goals)
-            {
-                var mapTile = GetMapTile(new Vector3(col, row));
-                if (mapTile is null || mapTile.Type != MapTileType.Box)
-                {
-                    continue;
-                }
-
-                goalCount++;
-            }
-
-            return _goals.Count.Equals(goalCount);
+            _map.Release();
+            _mapTiles.Clear();
+            _mapFileData.Reset();
         }
 
         public void HandleSwapMapTiles(Vector3 to, Vector3 from)
@@ -128,6 +129,49 @@ namespace Sokoban
             return HasMapTile(position) ? _mapTiles[(row, col)] : null;
         }
 
+        #endregion
+
+        #region Private
+
+        private static Vector3 GetTilePositionFromRowCol(int row, int col)
+        {
+            return new Vector3(col * 1, row * -1);
+        }
+
+        private static (int row, int col) GetRowColFromPosition(Vector3 position)
+        {
+            return (Mathf.Abs(Mathf.FloorToInt(position.y)), Mathf.Abs(Mathf.FloorToInt(position.x)));
+        }
+
+        private void CreateMapTile(string tileToken, int row, int col)
+        {
+            var position = GetTilePositionFromRowCol(row, col);
+
+            if (".".Equals(tileToken))
+            {
+                _map.CreateMapTile(tileToken, position);
+                return;
+            }
+
+            _map.CreateMapTile("=", position);
+
+            var zPosition = tileToken switch
+            {
+                "#" => -1f,
+                "$" => -2f,
+                "@" => -3f,
+                _ => 0f,
+            };
+
+            if (zPosition.Equals(0))
+            {
+                return;
+            }
+
+            position.z = zPosition;
+            _mapTiles[(row, col)] = _map.CreateMapTile(tileToken, position);
+        }
+
         private void SwapMapTiles(Vector3 to, Vector3 from)
         {
             var (toRow, toCol) = GetRowColFromPosition(to);
@@ -144,20 +188,14 @@ namespace Sokoban
             _mapTiles.Remove((fromRow, fromCol));
         }
 
-        private static Vector3 GetTilePositionFromRowCol(int row, int col)
-        {
-            return new Vector3(col * 1, row * -1);
-        }
-
-        private static (int row, int col) GetRowColFromPosition(Vector3 position)
-        {
-            return (Mathf.Abs(Mathf.FloorToInt(position.y)), Mathf.Abs(Mathf.FloorToInt(position.x)));
-        }
-
         private bool HasMapTile(Vector3 position)
         {
             var (row, col) = GetRowColFromPosition(position);
             return _mapTiles.ContainsKey((row, col));
         }
+
+        #endregion
+
+        #endregion
     }
 }

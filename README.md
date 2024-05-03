@@ -9,5 +9,8 @@
 - [x] Check box collisions
 - [x] Check goal collisions
 - [x] Undo/Redo Command Pattern
-- [ ] UI
+- [x] UI Controls
+- [x] Object pooling for map tiles
 - [ ] Write tests
+
+Thanks to Kenney for the art assets: <https://www.kenney.nl/assets/sokoban>

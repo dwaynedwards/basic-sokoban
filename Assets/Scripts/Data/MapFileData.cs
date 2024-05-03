@@ -37,6 +37,11 @@ namespace Sokoban
             ReadMapTiles(sr);
         }
 
+        public void Reset()
+        {
+            _mapTiles.Clear();
+        }
+
         public string GetMapTile(int row, int col)
         {
             return HasMapTile(row, col) ? _mapTiles[(row, col)] : " ";

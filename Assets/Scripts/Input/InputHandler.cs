@@ -7,14 +7,27 @@ namespace Sokoban
     [Serializable]
     public class InputHandler
     {
+        #region Fields and Properties
+
+        #region Public
+
+        public event Action OnLevelComplete = delegate { };
+
+        #endregion
+
+        #region Private
+
         [ShowInInspector, ReadOnly,]
         private MapData _mapData;
 
         [ShowInInspector, ReadOnly,]
-        private Vector3 _moveDirection;
-
-        [ShowInInspector, ReadOnly,]
         private CommandInvoker _commandInvoker;
+
+        #endregion
+
+        #endregion
+
+        #region Constructors
 
         public InputHandler(MapData mapData, CommandInvoker commandInvoker)
         {
@@ -22,81 +35,88 @@ namespace Sokoban
             _commandInvoker = commandInvoker;
         }
 
-        public InputHandler() { }
+        #endregion
 
-        public void HandleMoveInput()
+        #region Methods
+
+        #region Public
+
+        public void HandleReset()
         {
-            _moveDirection = Vector3.zero;
-
-            if (Input.GetKeyDown(KeyCode.UpArrow))
-            {
-                _moveDirection = Vector3.up;
-            }
-
-            if (Input.GetKeyDown(KeyCode.RightArrow))
-            {
-                _moveDirection = Vector3.right;
-            }
-
-            if (Input.GetKeyDown(KeyCode.DownArrow))
-            {
-                _moveDirection = Vector3.down;
-            }
-
-            if (Input.GetKeyDown(KeyCode.LeftArrow))
-            {
-                _moveDirection = Vector3.left;
-            }
+            _commandInvoker.Reset();
+            _mapData.Reset();
+            _mapData.Initialize();
         }
 
-        public void HandleUndoRedoInput()
+        public void HandleUndo()
         {
-            if (Input.GetKeyDown(KeyCode.U))
-            {
-                _commandInvoker.UndoCommand();
-            }
-
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                _commandInvoker.RedoCommand();
-            }
+            _commandInvoker.UndoCommand();
         }
 
-        public void HandleMove()
+        public void HandleRedo()
         {
-            if (_moveDirection == Vector3.zero)
+            _commandInvoker.RedoCommand();
+        }
+
+        public void HandleUp()
+        {
+            HandleMove(Vector3.up);
+        }
+
+        public void HandleLeft()
+        {
+            HandleMove(Vector3.left);
+        }
+
+        public void HandleDown()
+        {
+            HandleMove(Vector3.down);
+        }
+
+        public void HandleRight()
+        {
+            HandleMove(Vector3.right);
+        }
+
+        #endregion
+
+        #region Private
+
+        private void HandleMove(Vector3 moveDirection)
+        {
+            if (moveDirection == Vector3.zero)
             {
                 return;
             }
 
-            if (!TestMove(out var position))
+            if (!TestMove(out var position, moveDirection))
             {
                 return;
             }
 
-            var command = new MoveCommand(_mapData,  position, _mapData.Player.Position, _moveDirection);
+            var command = new MoveCommand(_mapData, position, _mapData.Player.Position, moveDirection);
             _commandInvoker.ExecuteCommand(command);
 
-            if (_mapData.CheckGoals())
+            if (_mapData.IsLevelComplete)
             {
-                Debug.Log("Success");
+                OnLevelComplete();
             }
         }
 
-        private void DoMove(Vector3 fromPosition)
+        private void DoMove(Vector3 fromPosition, Vector3 moveDirection)
         {
             var playerPosition = _mapData.Player.Position;
             while (playerPosition != fromPosition)
             {
                 var toPosition = fromPosition;
-                toPosition -= _moveDirection;
+                toPosition -= moveDirection;
 
                 if (playerPosition != toPosition)
                 {
                     var tile = _mapData.GetMapTile(toPosition);
                     if (tile is not null)
                     {
-                        tile.Position += _moveDirection;
+                        tile.Position += moveDirection;
                     }
                 }
 
@@ -104,13 +124,13 @@ namespace Sokoban
                 fromPosition = toPosition;
             }
 
-            _mapData.Player.Position += _moveDirection;
+            _mapData.Player.Position += moveDirection;
         }
 
-        private bool TestMove(out Vector3 position)
+        private bool TestMove(out Vector3 position, Vector3 moveDirection)
         {
             position = _mapData.Player.Position;
-            position += _moveDirection;
+            position += moveDirection;
             var isFirstBox = true;
 
             while (true)
@@ -125,9 +145,13 @@ namespace Sokoban
                     return false;
                 }
 
-                position += _moveDirection;
+                position += moveDirection;
                 isFirstBox = false;
             }
         }
+
+        #endregion
+
+        #endregion
     }
 }

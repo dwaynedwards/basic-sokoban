@@ -49,6 +49,7 @@ ExportedObj/
 *.mdb
 *.opendb
 *.VC.db
+*.DotSettings
 
 # Unity3D generated meta files
 *.pidb.meta
@@ -77,6 +78,8 @@ crashlytics-build.properties
 # misc
 /[Aa]ssets/[Pp]lugins/
 /[Aa]ssets/[Pp]lugins.meta
+/[Aa]ssets/TextMesh Pro/
+/[Aa]ssets/TextMesh Pro.meta
 /[Pp]ackages/com.*
 
 .DS_Store
