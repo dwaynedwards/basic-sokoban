@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Sokoban
 {
-    public interface IPositionable
+    public interface IPosition
     {
         public Vector3 Position { get; set; }
     }

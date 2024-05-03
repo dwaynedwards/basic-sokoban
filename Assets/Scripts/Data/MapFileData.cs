@@ -1,16 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Sirenix.OdinInspector;
 
 namespace Sokoban
 {
     [Serializable]
-    public class MapData
+    public class MapFileData
     {
-        public string Name { get; private set; }
+        [ShowInInspector, ReadOnly]
+        private string _name;
 
+        [ShowInInspector, ReadOnly]
         public int Rows { get; private set; }
 
+        [ShowInInspector, ReadOnly]
         public int Cols { get; private set; }
 
         private readonly Dictionary<(int, int), string> _mapTiles = new();
@@ -73,7 +77,7 @@ namespace Sokoban
 
         private void ReadMapName(TextReader sr)
         {
-            Name = sr.ReadLine();
+            _name = sr.ReadLine();
         }
 
         private bool HasMapTile(int row, int col)

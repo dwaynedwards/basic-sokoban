@@ -1,8 +1,10 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Sokoban
 {
-    public class MapTileView : MonoBehaviour, IMapTile
+    [ShowOdinSerializedPropertiesInInspector]
+    public class MapTile : MonoBehaviour, IPosition
     {
         public Vector3 Position
         {
@@ -13,13 +15,11 @@ namespace Sokoban
         [SerializeField]
         private MapTileType _type;
 
-        public MapTileType Type => _type;
-
-        public MapTile MapTile { get; private set; }
+        public MapTileData MapTileData { get; private set; }
 
         private void Awake()
         {
-            MapTile = new MapTile(this);
+            MapTileData = new MapTileData(this, _type);
         }
     }
 }

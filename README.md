@@ -8,5 +8,6 @@
 - [x] Check wall collisions
 - [x] Check box collisions
 - [x] Check goal collisions
+- [x] Undo/Redo Command Pattern
+- [ ] UI
 - [ ] Write tests
-- [ ] Undo/Redo
