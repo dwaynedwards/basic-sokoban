@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: c37e3697756224ac7aa70dd339f99dae
+guid: 2643a83da4b4f40148babf80b5defe28
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8462324844121053072
-    second: LeftIcon_0
+      213: -3607082822569126614
+    second: flair_arrow_3_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -51,7 +51,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 512
+  spritePixelsToUnits: 128
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -72,10 +72,10 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 512
+    maxTextureSize: 128
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -139,13 +139,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: LeftIcon_0
+      name: flair_arrow_3_0
       rect:
         serializedVersion: 2
-        x: 55
-        y: 52
-        width: 402
-        height: 408
+        x: 1
+        y: 15
+        width: 112
+        height: 98
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -153,8 +153,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 078a33cb368cf8a80800000000000000
-      internalID: -8462324844121053072
+      spriteID: a259a55b84111fdc0800000000000000
+      internalID: -3607082822569126614
       vertices: []
       indices: 
       edges: []
@@ -170,7 +170,7 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      LeftIcon_0: -8462324844121053072
+      flair_arrow_3_0: -3607082822569126614
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
