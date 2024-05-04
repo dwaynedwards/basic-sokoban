@@ -28,15 +28,28 @@ namespace Sokoban
         [SerializeField]
         private MapTileType _type;
 
+        private AudioSource _audio;
+        private SpriteRenderer _renderer;
+
         #endregion
 
         #endregion
 
         #region Unity Methods
 
+        private void OnDestroy()
+        {
+            MapTileData.OnPlaySound -= OnPlaySound;
+            MapTileData.OnChangeColour += OnChangeColour;
+        }
+
         private void Awake()
         {
+            _audio = GetComponent<AudioSource>();
+            _renderer = GetComponent<SpriteRenderer>();
             MapTileData = new MapTileData(this, _type);
+            MapTileData.OnPlaySound += OnPlaySound;
+            MapTileData.OnChangeColour += OnChangeColour;
         }
 
         #endregion
@@ -48,6 +61,21 @@ namespace Sokoban
         public void Release()
         {
             ObjectPool?.Release(this);
+        }
+
+        #endregion
+
+        #region Private
+
+        private void OnPlaySound()
+        {
+            _audio.Stop();
+            _audio.Play();
+        }
+
+        private void OnChangeColour(bool isReset)
+        {
+            _renderer.color = isReset ? Color.white : new Color(0.6f, 0.6f, 0.6f);
         }
 
         #endregion

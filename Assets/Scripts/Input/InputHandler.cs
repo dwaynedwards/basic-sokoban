@@ -51,11 +51,13 @@ namespace Sokoban
         public void HandleUndo()
         {
             _commandInvoker.UndoCommand();
+            _mapData.GetIsLevelComplete();
         }
 
         public void HandleRedo()
         {
             _commandInvoker.RedoCommand();
+            _mapData.GetIsLevelComplete();
         }
 
         public void HandleUp()
@@ -97,34 +99,10 @@ namespace Sokoban
             var command = new MoveCommand(_mapData, position, _mapData.Player.Position, moveDirection);
             _commandInvoker.ExecuteCommand(command);
 
-            if (_mapData.IsLevelComplete)
+            if (_mapData.GetIsLevelComplete())
             {
                 OnLevelComplete();
             }
-        }
-
-        private void DoMove(Vector3 fromPosition, Vector3 moveDirection)
-        {
-            var playerPosition = _mapData.Player.Position;
-            while (playerPosition != fromPosition)
-            {
-                var toPosition = fromPosition;
-                toPosition -= moveDirection;
-
-                if (playerPosition != toPosition)
-                {
-                    var tile = _mapData.GetMapTile(toPosition);
-                    if (tile is not null)
-                    {
-                        tile.Position += moveDirection;
-                    }
-                }
-
-                _mapData.HandleSwapMapTiles(toPosition, fromPosition);
-                fromPosition = toPosition;
-            }
-
-            _mapData.Player.Position += moveDirection;
         }
 
         private bool TestMove(out Vector3 position, Vector3 moveDirection)

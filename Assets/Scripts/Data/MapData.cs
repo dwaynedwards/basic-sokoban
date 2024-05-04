@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Sokoban
@@ -11,34 +13,20 @@ namespace Sokoban
 
         #region Public
 
+        public event Action OnInitialize = delegate { };
+
         public MapTileData Player { get; private set; }
 
-        public bool IsLevelComplete
-        {
-            get
-            {
-                var goalCount = 0;
-
-                foreach (var (row, col) in _goals)
-                {
-                    var mapTile = GetMapTile(new Vector3(col, row));
-                    if (mapTile is null || mapTile.Type != MapTileType.Box)
-                    {
-                        continue;
-                    }
-
-                    goalCount++;
-                }
-
-                return _goals.Count.Equals(goalCount);
-            }
-        }
+        public int Rows { get => _mapFileData.Rows; }
+        public int Cols { get => _mapFileData.Cols; }
 
         #endregion
 
         #region Private
 
+        [ShowInInspector, ReadOnly,]
         private MapFileData _mapFileData = new();
+
         private readonly Dictionary<(int, int), MapTileData> _mapTiles = new();
         private List<(int, int)> _goals = new();
 
@@ -84,12 +72,42 @@ namespace Sokoban
                         case "@":
                             Player = _mapTiles[(row, col)];
                             break;
+                        case "+":
+                            Player = _mapTiles[(row, col)];
+                            _goals.Add((row, col));
+                            break;
                         case ".":
+                        case "*":
                             _goals.Add((row, col));
                             break;
                     }
                 }
             }
+
+            GetIsLevelComplete();
+            OnInitialize();
+        }
+
+        public bool GetIsLevelComplete()
+        {
+            ResetBoxes();
+
+            var goalCount = 0;
+
+            foreach (var (row, col) in _goals)
+            {
+                var mapTile = GetMapTile(new Vector3(col, row));
+                if (mapTile is null || mapTile.Type != MapTileType.Box)
+                {
+                    continue;
+                }
+
+                mapTile.ChangeColour(false);
+
+                goalCount++;
+            }
+
+            return _goals.Count.Equals(goalCount);
         }
 
         public void Reset()
@@ -97,6 +115,7 @@ namespace Sokoban
             _map.Release();
             _mapTiles.Clear();
             _mapFileData.Reset();
+            ResetBoxes();
         }
 
         public void HandleSwapMapTiles(Vector3 to, Vector3 from)
@@ -147,13 +166,25 @@ namespace Sokoban
         {
             var position = GetTilePositionFromRowCol(row, col);
 
-            if (".".Equals(tileToken))
+            if (".".Equals(tileToken) || "*".Equals(tileToken) || "+".Equals(tileToken))
             {
-                _map.CreateMapTile(tileToken, position);
-                return;
+                _map.CreateMapTile(".", position);
+                switch (tileToken)
+                {
+                    case "+":
+                        tileToken = "@";
+                        break;
+                    case "*":
+                        tileToken = "$";
+                        break;
+                    default:
+                        return;
+                }
             }
-
-            _map.CreateMapTile("=", position);
+            else
+            {
+                _map.CreateMapTile("=", position);
+            }
 
             var zPosition = tileToken switch
             {
@@ -192,6 +223,14 @@ namespace Sokoban
         {
             var (row, col) = GetRowColFromPosition(position);
             return _mapTiles.ContainsKey((row, col));
+        }
+
+        private void ResetBoxes()
+        {
+            foreach (var mapTile in _mapTiles.Values.Where(mapTile => mapTile.Type == MapTileType.Box))
+            {
+                mapTile.ChangeColour(true);
+            }
         }
 
         #endregion

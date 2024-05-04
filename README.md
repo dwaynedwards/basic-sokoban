@@ -11,6 +11,12 @@
 - [x] Undo/Redo Command Pattern
 - [x] UI Controls
 - [x] Object pooling for map tiles
-- [ ] Write tests
+- [x] Music/sound effects
 
-Thanks to Kenney for the art assets: <https://www.kenney.nl/assets/sokoban>
+Thanks to Kenney for the art assets:
+<https://www.kenney.nl/assets/sokoban>
+
+Thanks to OpenGameArt.org for the audio assets:
+<https://opengameart.org/content/step-sound-walking>
+<https://opengameart.org/content/scrapes>
+<https://opengameart.org/content/caketown-cuteplayful>

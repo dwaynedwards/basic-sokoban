@@ -32,21 +32,31 @@ namespace Sokoban
         private IObjectPool<MapTile> _boxObjectPool;
         private IObjectPool<MapTile> _playerObjectPool;
 
+        private Camera _camera;
+
         #endregion
 
         #endregion
 
         #region Unity Methods
 
+        private void OnDestroy()
+        {
+            MapData.OnInitialize -= OnInitialize;
+        }
+
         private void Awake()
         {
             MapData = new MapData(this, _filePath);
+            MapData.OnInitialize += OnInitialize;
 
             _floorObjectPool = new ObjectPool<MapTile>(OnCreateFloor, OnGet, OnRelease, OnDelete, true, 150, 200);
             _wallObjectPool = new ObjectPool<MapTile>(OnCreateWall, OnGet, OnRelease, OnDelete, true, 50, 100);
             _goalObjectPool = new ObjectPool<MapTile>(OnCreateGoal, OnGet, OnRelease, OnDelete, true, 5, 10);
             _boxObjectPool = new ObjectPool<MapTile>(OnCreateBox, OnGet, OnRelease, OnDelete, true, 5, 10);
             _playerObjectPool = new ObjectPool<MapTile>(OnCreatePlayer, OnGet, OnRelease, OnDelete, true, 1, 1);
+
+            _camera = Camera.main;
         }
 
         private void Start()
@@ -89,6 +99,13 @@ namespace Sokoban
         #endregion
 
         #region Private
+
+        private void OnInitialize()
+        {
+            var halfRows = MapData.Rows / 2f;
+            _camera.orthographicSize = MapData.Rows + 1;
+            _camera.transform.position = new Vector3(halfRows, -halfRows, -10f);
+        }
 
         private MapTile OnCreateFloor()
         {

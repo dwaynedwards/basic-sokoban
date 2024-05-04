@@ -8,8 +8,9 @@ namespace Sokoban
     [Serializable]
     public class MapFileData
     {
-        [ShowInInspector, ReadOnly]
-        private string _name;
+        #region Fields and Properties
+
+        #region Public
 
         [ShowInInspector, ReadOnly]
         public int Rows { get; private set; }
@@ -17,7 +18,22 @@ namespace Sokoban
         [ShowInInspector, ReadOnly]
         public int Cols { get; private set; }
 
+        #endregion
+
+        #region Private
+
+        [ShowInInspector, ReadOnly]
+        private string _name;
+
         private readonly Dictionary<(int, int), string> _mapTiles = new();
+
+        #endregion
+
+        #endregion
+
+        #region Methods
+
+        #region Public
 
         public void LoadMap(string filename)
         {
@@ -47,6 +63,10 @@ namespace Sokoban
             return HasMapTile(row, col) ? _mapTiles[(row, col)] : " ";
         }
 
+        #endregion
+
+        #region Private
+
         private void ReadMapTiles(TextReader sr)
         {
             for (var row = 0; sr.Peek() >= 0; row++)
@@ -70,14 +90,13 @@ namespace Sokoban
         {
             var size = sr.ReadLine()?.Split("x");
 
-            sr.ReadLine();
             if (size is null)
             {
                 return;
             }
 
-            Rows = int.Parse(size[1]);
-            Cols = int.Parse(size[0]);
+            Rows = int.Parse(size[0]);
+            Cols = int.Parse(size[1]);
         }
 
         private void ReadMapName(TextReader sr)
@@ -89,5 +108,9 @@ namespace Sokoban
         {
             return _mapTiles.ContainsKey((row, col));
         }
+
+        #endregion
+
+        #endregion
     }
 }

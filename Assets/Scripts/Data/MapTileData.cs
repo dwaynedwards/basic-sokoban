@@ -15,6 +15,9 @@ namespace Sokoban
 
         #region Public
 
+        public event Action OnPlaySound = delegate { };
+        public event Action<bool> OnChangeColour = delegate { };
+
         public Vector3 Position
         {
             get => _position.Position;
@@ -40,6 +43,24 @@ namespace Sokoban
             _position = position;
             Type = type;
         }
+
+        #endregion
+
+        #region Methods
+
+        #region Public
+
+        public void PlaySound()
+        {
+            OnPlaySound();
+        }
+
+        public void ChangeColour(bool isReset)
+        {
+            OnChangeColour(isReset);
+        }
+
+        #endregion
 
         #endregion
     }

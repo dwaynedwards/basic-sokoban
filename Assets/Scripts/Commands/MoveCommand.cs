@@ -68,6 +68,7 @@ namespace Sokoban
                 if (tile is not null)
                 {
                     tile.Position += moveDirection;
+                    tile.PlaySound();
                 }
 
                 _mapData.HandleSwapMapTiles(to, next);
